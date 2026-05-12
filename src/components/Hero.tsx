@@ -11,7 +11,7 @@ export default function Hero() {
     >
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-[90%]">
         <div className="font-body text-xs tracking-[0.3em] uppercase font-bold text-ch-gold mb-[18px]">
-          Olympic Champion &middot; 1500 m &middot; World Record Holder
+          Olympic Champion &middot; 1500 m &middot; Olympic Record Holder
         </div>
         <h1
           className="font-display text-[clamp(96px,18vw,280px)] leading-[0.85] tracking-[-0.02em] uppercase m-0"
