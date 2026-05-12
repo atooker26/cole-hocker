@@ -27,7 +27,7 @@ export default function TeamSova() {
           <Button variant="ghost" href="https://www.youtube.com/@team_SOVA">
             Watch on YouTube
           </Button>
-          <Button variant="link" href="#">
+          <Button variant="link" href="https://open.spotify.com/artist/73JgeGtaflWdgJUCCP3cJr?si=7MnLRhmPTUao1IIVhqaFdQ">
             Spotify &rarr;
           </Button>
         </div>
