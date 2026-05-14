@@ -4,6 +4,7 @@ const BADGES = [
   { img: "/assets/olympic-champion-badge.png", title: "Olympic\nChampion", sub: "Paris 2024 \u00b7 1500 m" },
   { img: "/assets/world-champion-badge.png", title: "World\nChampion", sub: "Tokyo 2025 \u00b7 5000 m" },
   { img: "/assets/world-indoor-silver-badge.png", title: "World Indoor\nSilver", sub: "Glasgow 2024 \u00b7 1500 m" },
+  { img: "/assets/world-indoor-silver-torun-badge.png", title: "World Indoor\nSilver", sub: "Toru\u0144 2026 \u00b7 3000 m" },
   { img: "/assets/us-champion-badge.png", title: "5\u00d7\nU.S. Champion", sub: "USATF" },
   { img: "/assets/ncaa-champion-badge.png", title: "3\u00d7\nNCAA Champion", sub: "Oregon" },
 ];
@@ -11,7 +12,7 @@ const BADGES = [
 export default function AchievementBadges() {
   return (
     <section className="bg-black px-6 py-24 md:px-12 text-white">
-      <div className="max-w-[1280px] mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 items-start">
+      <div className="max-w-[1280px] mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 items-start">
         {BADGES.map((b, i) => (
           <div key={i} className="text-center">
             <Image
