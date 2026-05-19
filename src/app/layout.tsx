@@ -15,6 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="antialiased">
+      <head>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script defer src="https://www.tegomarketing.com/tego.js" data-slug="cole-hocker" />
+      </head>
       <body>
         {children}
         <Analytics />
