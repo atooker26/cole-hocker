@@ -5,6 +5,7 @@ import Image from "next/image";
 
 const NAV_ITEMS = [
   { id: "home", label: "Home", href: "#" },
+  { id: "shop", label: "Shop", href: "/shop" },
   { id: "videos", label: "Videos", href: "#videos" },
   { id: "agent", label: "Sport Agent", href: "#management" },
 ];
