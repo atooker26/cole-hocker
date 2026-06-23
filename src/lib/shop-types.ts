@@ -94,6 +94,20 @@ export type OrderItem = {
   subtotal_cents: number;
 };
 
+export type ScheduleStatus = "upcoming" | "completed";
+
+export type ScheduleEntry = {
+  id: string;
+  event: string;
+  location: string;
+  date: string; // YYYY-MM-DD
+  tag: string;
+  result: string | null;
+  status: ScheduleStatus;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ShippingTier = {
   name: string;
   amount_cents: number;
