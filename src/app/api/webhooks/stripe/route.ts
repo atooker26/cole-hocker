@@ -33,12 +33,17 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  const supabase = createAdminClient();
+
+  if (event.type === "charge.refunded") {
+    await handleRefund(supabase, event.data.object as Stripe.Charge);
+    return new Response("ok", { status: 200 });
+  }
   if (event.type !== "checkout.session.completed") {
     return new Response("ok", { status: 200 });
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
-  const supabase = createAdminClient();
 
   // Idempotency — Stripe retries; only fulfill once.
   const { data: existing } = await supabase
@@ -177,12 +182,28 @@ export async function POST(request: NextRequest) {
     settings.cole_connect_account_id
   ) {
     try {
+      // Tie transfers to the charge so they draw from those funds as the charge
+      // settles (avoids "insufficient available balance" on a fresh platform).
+      let sourceTransaction: string | undefined;
+      const piId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : undefined;
+      if (piId) {
+        const pi = await stripe.paymentIntents.retrieve(piId);
+        sourceTransaction =
+          typeof pi.latest_charge === "string"
+            ? pi.latest_charge
+            : (pi.latest_charge?.id ?? undefined);
+      }
+
       if (split.kirkCents > 0) {
         await stripe.transfers.create({
           amount: split.kirkCents,
           currency,
           destination: settings.kirk_connect_account_id,
           transfer_group: orderId,
+          ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
         });
       }
       if (split.coleCents > 0) {
@@ -191,6 +212,7 @@ export async function POST(request: NextRequest) {
           currency,
           destination: settings.cole_connect_account_id,
           transfer_group: orderId,
+          ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
         });
       }
       await supabase
@@ -219,4 +241,43 @@ export async function POST(request: NextRequest) {
 
   revalidatePath("/admin/orders");
   return new Response("ok", { status: 200 });
+}
+
+/** Mark a fully-refunded order and restock its tracked variants. */
+async function handleRefund(
+  supabase: ReturnType<typeof createAdminClient>,
+  charge: Stripe.Charge,
+) {
+  if (charge.amount_refunded < charge.amount) return; // ignore partial refunds
+  const piId =
+    typeof charge.payment_intent === "string"
+      ? charge.payment_intent
+      : charge.payment_intent?.id;
+  if (!piId) return;
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id, status, items:order_items(variant_id, quantity)")
+    .eq("stripe_payment_intent_id", piId)
+    .maybeSingle();
+  if (!order || order.status === "refunded") return;
+
+  await supabase.from("orders").update({ status: "refunded" }).eq("id", order.id);
+
+  // Restock: decrement by a negative qty = increment. Untracked variants are a
+  // no-op inside the RPC, so made-to-order items are unaffected.
+  const refundItems = (order.items ?? []) as {
+    variant_id: string | null;
+    quantity: number;
+  }[];
+  for (const it of refundItems) {
+    if (it.variant_id) {
+      await supabase.rpc("decrement_inventory", {
+        p_variant_id: it.variant_id,
+        p_qty: -it.quantity,
+      });
+    }
+  }
+
+  revalidatePath("/admin/orders");
 }

@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
     cancel_url: `${siteUrl()}/cart`,
     shipping_address_collection: { allowed_countries: ["US", "CA"] },
     customer_creation: "always",
+    allow_promotion_codes: true,
     metadata: {
       cart: JSON.stringify(
         parsed.data.items.map((i) => ({ v: i.variantId, q: i.quantity })),
