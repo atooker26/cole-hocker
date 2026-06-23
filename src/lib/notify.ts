@@ -54,3 +54,29 @@ export async function notifyKirk(order: OrderNotification): Promise<void> {
     console.error("notifyKirk failed:", err);
   }
 }
+
+/**
+ * Send the buyer an order confirmation. Routed through the TEGO webhook (same
+ * pattern as the email-signup form) so it uses TEGO's existing email pipeline —
+ * no extra provider key needed. Best-effort; never throws.
+ */
+export async function notifyCustomer(order: {
+  orderNumber: number;
+  email: string;
+  items: { title: string; variant: string; quantity: number }[];
+  totalCents: number;
+}): Promise<void> {
+  if (!order.email) return;
+  try {
+    await fetch("https://www.tegomarketing.com/api/webhooks/cole-hocker", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Webhook-Secret": process.env.WEBHOOK_SECRET ?? "",
+      },
+      body: JSON.stringify({ formType: "order-confirmation", ...order }),
+    });
+  } catch (err) {
+    console.error("notifyCustomer failed:", err);
+  }
+}

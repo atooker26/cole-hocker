@@ -5,7 +5,8 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeSplit } from "@/lib/split";
-import { notifyKirk } from "@/lib/notify";
+import { notifyKirk, notifyCustomer } from "@/lib/notify";
+import type { Json } from "@/lib/database.types";
 
 export const runtime = "nodejs";
 
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
       shipping_cents: shippingCents,
       total_cents: totalCents,
       currency,
-      shipping_address: shippingAddress,
+      shipping_address: shippingAddress as Json,
       kirk_pct: kirkPct,
       kirk_amount_cents: split.kirkCents,
       cole_amount_cents: split.coleCents,
@@ -205,17 +206,16 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await notifyKirk({
-    orderNumber: inserted?.order_number ?? 0,
-    email,
-    items: items.map((i) => ({
-      title: i.product_title,
-      variant: i.variant_title,
-      quantity: i.quantity,
-    })),
-    shippingAddress,
-    totalCents,
-  });
+  const notifyItems = items.map((i) => ({
+    title: i.product_title,
+    variant: i.variant_title,
+    quantity: i.quantity,
+  }));
+  const orderNumber = inserted?.order_number ?? 0;
+  await Promise.all([
+    notifyKirk({ orderNumber, email, items: notifyItems, shippingAddress, totalCents }),
+    notifyCustomer({ orderNumber, email, items: notifyItems, totalCents }),
+  ]);
 
   revalidatePath("/admin/orders");
   return new Response("ok", { status: 200 });

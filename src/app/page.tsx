@@ -7,6 +7,7 @@ import Management from "@/components/Management";
 import Cameo from "@/components/Cameo";
 import TeamSova from "@/components/TeamSova";
 import PhotoStrip from "@/components/PhotoStrip";
+import ShopTeaser from "@/components/ShopTeaser";
 import EmailSignup from "@/components/EmailSignup";
 import Footer from "@/components/Footer";
 
@@ -22,6 +23,7 @@ export default function Home() {
       <Cameo />
       <TeamSova />
       <PhotoStrip />
+      <ShopTeaser />
       <EmailSignup />
       <Footer />
     </main>
