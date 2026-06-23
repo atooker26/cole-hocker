@@ -201,7 +201,7 @@ async function main() {
         {
           variant_id: variant.id,
           quantity: isNaN(qty) ? 0 : qty,
-          track: (r["Variant Inventory Tracker"] || "shopify") !== "",
+          track: (r["Variant Inventory Tracker"] || "").trim() !== "",
         },
         { onConflict: "variant_id" },
       );

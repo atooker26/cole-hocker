@@ -97,7 +97,12 @@ async function main() {
   const seenCustomers = new Set<string>();
 
   for (const [name, rows] of byOrder) {
-    const head = rows.find((r) => r["Email"] || r["Total"]) ?? rows[0];
+    // Order-level fields (Total/Email) live on the first row of each order; pick
+    // the row that actually carries the Total.
+    const head =
+      rows.find((r) => (r["Total"] || "").trim()) ??
+      rows.find((r) => r["Email"]) ??
+      rows[0];
     const email = (head["Email"] || "").toLowerCase().trim();
 
     let customerId: string | null = null;
@@ -126,9 +131,14 @@ async function main() {
         }
       : null;
 
-    const createdAt = head["Created at"]
-      ? new Date(head["Created at"]).toISOString()
-      : undefined;
+    // Shopify "Created at" is "YYYY-MM-DD HH:MM:SS -0500" (non-ISO). Parse
+    // defensively so a bad value can't throw and abort the whole import.
+    let createdAt: string | undefined;
+    if (head["Created at"]) {
+      let d = new Date(head["Created at"]);
+      if (isNaN(d.getTime())) d = new Date(head["Created at"].replace(" ", "T"));
+      if (!isNaN(d.getTime())) createdAt = d.toISOString();
+    }
 
     const { data: order, error: oErr } = await supabase
       .from("orders")

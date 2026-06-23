@@ -84,9 +84,11 @@ export async function getOrders(opts: {
     // Sanitize so user input can't break the PostgREST or() filter syntax.
     const safe = opts.q.trim().replace(/[^a-zA-Z0-9@._#\- ]/g, "");
     if (safe) {
-      const numeric = /^\d+$/.test(safe) ? `,order_number.eq.${safe}` : "";
+      const like = safe.replace(/[%_]/g, (m) => `\\${m}`); // escape LIKE wildcards
+      const digits = safe.replace(/^#/, ""); // also match the displayed #-number
+      const numeric = /^\d+$/.test(digits) ? `,order_number.eq.${digits}` : "";
       query = query.or(
-        `email.ilike.%${safe}%,shopify_order_id.ilike.%${safe}%${numeric}`,
+        `email.ilike.%${like}%,shopify_order_id.ilike.%${like}%${numeric}`,
       );
     }
   }
