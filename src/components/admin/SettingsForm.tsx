@@ -16,6 +16,14 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
   const [coleId, setColeId] = useState(settings.cole_connect_account_id ?? "");
   const [connectEnabled, setConnectEnabled] = useState(settings.connect_enabled);
   const [notifyEmail, setNotifyEmail] = useState(settings.notify_email ?? "");
+  const [shipFlat, setShipFlat] = useState(
+    settings.shipping_flat_cents ? (settings.shipping_flat_cents / 100).toFixed(2) : "",
+  );
+  const [freeOver, setFreeOver] = useState(
+    settings.free_shipping_threshold_cents
+      ? (settings.free_shipping_threshold_cents / 100).toFixed(2)
+      : "",
+  );
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -32,6 +40,10 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
       cole_connect_account_id: coleId || null,
       connect_enabled: connectEnabled,
       notify_email: notifyEmail || null,
+      shipping_flat_cents: shipFlat ? Math.round(parseFloat(shipFlat) * 100) : 0,
+      free_shipping_threshold_cents: freeOver
+        ? Math.round(parseFloat(freeOver) * 100)
+        : 0,
     });
     setSaving(false);
     if (!result.ok) {
@@ -86,6 +98,42 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
             Kirk ${(parseFloat(kirkPct || "0")).toFixed(0)} · TEGO $
             {(parseFloat(platformPct || "0")).toFixed(0)} · Cole $
             {(100 - parseFloat(kirkPct || "0") - parseFloat(platformPct || "0")).toFixed(0)}
+          </span>
+        </div>
+
+        <div className="border-t border-ch-border pt-6">
+          <div className="mb-4 font-body text-[11px] uppercase tracking-[0.2em] text-ch-gold">
+            Shipping
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex flex-col gap-2">
+              <span className="font-body text-[11px] uppercase tracking-[0.2em] text-ch-fog">
+                Flat rate ($)
+              </span>
+              <input
+                className={inputClass}
+                value={shipFlat}
+                inputMode="decimal"
+                placeholder="5.00"
+                onChange={(e) => setShipFlat(e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="font-body text-[11px] uppercase tracking-[0.2em] text-ch-fog">
+                Free over ($, 0 = off)
+              </span>
+              <input
+                className={inputClass}
+                value={freeOver}
+                inputMode="decimal"
+                placeholder="75.00"
+                onChange={(e) => setFreeOver(e.target.value)}
+              />
+            </label>
+          </div>
+          <span className="mt-2 block font-mono text-[11px] text-ch-fog">
+            Charged once per order at checkout. Leave flat rate blank/0 for free
+            shipping. Not part of the Kirk/Cole/TEGO split.
           </span>
         </div>
 

@@ -13,6 +13,8 @@ const schema = z
     cole_connect_account_id: z.string().nullish(),
     connect_enabled: z.boolean(),
     notify_email: z.string().email().nullish().or(z.literal("")),
+    shipping_flat_cents: z.number().int().nonnegative(),
+    free_shipping_threshold_cents: z.number().int().nonnegative(),
   })
   .refine((d) => d.kirk_pct + d.platform_pct <= 100, {
     message: "Kirk % + TEGO % cannot exceed 100",
@@ -25,6 +27,8 @@ export async function updateSettings(input: {
   cole_connect_account_id?: string | null;
   connect_enabled: boolean;
   notify_email?: string | null;
+  shipping_flat_cents: number;
+  free_shipping_threshold_cents: number;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   await requireAdmin();
   const parsed = schema.safeParse(input);
@@ -42,6 +46,8 @@ export async function updateSettings(input: {
       cole_connect_account_id: d.cole_connect_account_id || null,
       connect_enabled: d.connect_enabled,
       notify_email: d.notify_email || null,
+      shipping_flat_cents: d.shipping_flat_cents,
+      free_shipping_threshold_cents: d.free_shipping_threshold_cents,
       updated_at: new Date().toISOString(),
     })
     .eq("id", 1);
