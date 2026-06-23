@@ -146,7 +146,11 @@ export async function POST(request: NextRequest) {
   const platformPct = Number(settings?.platform_pct ?? 0);
   const split = computeSplit(subtotal, kirkPct, platformPct);
 
-  const { data: inserted } = await supabase
+  // The INSERT is the authoritative idempotency guard: the unique constraint on
+  // stripe_checkout_session_id means a concurrent/duplicate delivery that raced
+  // past the existence check above will fail here. If it fails, bail BEFORE
+  // decrementing inventory or creating transfers so we never double-fulfill.
+  const { data: inserted, error: insertError } = await supabase
     .from("orders")
     .insert({
       id: orderId,
@@ -171,12 +175,27 @@ export async function POST(request: NextRequest) {
     })
     .select("order_number")
     .single();
+  if (insertError) {
+    console.error("order insert failed (likely duplicate delivery):", insertError.message);
+    return new Response("ok", { status: 200 });
+  }
 
   if (items.length) await supabase.from("order_items").insert(items);
 
-  // Authoritative inventory decrement (oversell guard).
+  // Authoritative inventory decrement (oversell guard). Runs once per order
+  // (the insert above is the dedupe point). decrement_inventory returns false
+  // when a tracked variant is short — the customer already paid, so flag it
+  // loudly rather than silently shipping nothing.
   for (const c of cart) {
-    await supabase.rpc("decrement_inventory", { p_variant_id: c.v, p_qty: c.q });
+    const { data: decremented } = await supabase.rpc("decrement_inventory", {
+      p_variant_id: c.v,
+      p_qty: c.q,
+    });
+    if (decremented === false) {
+      console.error(
+        `OVERSOLD: order ${orderId} variant ${c.v} qty ${c.q} — insufficient stock`,
+      );
+    }
   }
 
   // Optional Connect transfers (only when fully configured + enabled).
@@ -202,22 +221,28 @@ export async function POST(request: NextRequest) {
       }
 
       if (split.kirkCents > 0) {
-        await stripe.transfers.create({
-          amount: split.kirkCents,
-          currency,
-          destination: settings.kirk_connect_account_id,
-          transfer_group: orderId,
-          ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
-        });
+        await stripe.transfers.create(
+          {
+            amount: split.kirkCents,
+            currency,
+            destination: settings.kirk_connect_account_id,
+            transfer_group: orderId,
+            ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
+          },
+          { idempotencyKey: `transfer-kirk:${orderId}` },
+        );
       }
       if (split.coleCents > 0) {
-        await stripe.transfers.create({
-          amount: split.coleCents,
-          currency,
-          destination: settings.cole_connect_account_id,
-          transfer_group: orderId,
-          ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
-        });
+        await stripe.transfers.create(
+          {
+            amount: split.coleCents,
+            currency,
+            destination: settings.cole_connect_account_id,
+            transfer_group: orderId,
+            ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
+          },
+          { idempotencyKey: `transfer-cole:${orderId}` },
+        );
       }
       await supabase
         .from("orders")

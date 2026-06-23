@@ -155,10 +155,18 @@ alter table settings    enable row level security;
 -- Storefront: anon may read the catalog only.
 create policy "anon read active products" on products
   for select to anon using (status = 'active');
+-- Anon may only read variants/inventory of active products (see 0007).
 create policy "anon read variants" on variants
-  for select to anon using (true);
+  for select to anon using (
+    exists (select 1 from products p where p.id = variants.product_id and p.status = 'active')
+  );
 create policy "anon read inventory" on inventory
-  for select to anon using (true);
+  for select to anon using (
+    exists (
+      select 1 from variants v join products p on p.id = v.product_id
+      where v.id = inventory.variant_id and p.status = 'active'
+    )
+  );
 
 -- Admin: any authenticated user (we don't allow public signup — only Cole/TEGO
 -- accounts exist) has full access. Tighten with an is_admin claim later if needed.

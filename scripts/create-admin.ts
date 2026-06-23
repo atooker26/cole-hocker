@@ -35,6 +35,26 @@ async function main() {
     console.error(`Failed (${res.status}):`, body.msg ?? body.error ?? body);
     process.exit(1);
   }
+
+  // Add to the admins allowlist (RLS gates all admin access on this).
+  if (body.id) {
+    const adminRes = await fetch(`${url}/rest/v1/admins`, {
+      method: "POST",
+      headers: {
+        apikey: key as string,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ user_id: body.id }),
+    });
+    if (!adminRes.ok && adminRes.status !== 409) {
+      console.error(
+        "Warning: user created but not added to admins:",
+        await adminRes.text().catch(() => ""),
+      );
+    }
+  }
   console.log(`✓ Created admin: ${body.email ?? email}`);
 }
 
