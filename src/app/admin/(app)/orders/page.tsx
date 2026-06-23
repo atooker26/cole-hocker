@@ -4,12 +4,30 @@ import { formatPrice } from "@/lib/format";
 
 export const metadata = { title: "Orders — Shop Admin" };
 
-export default async function OrdersPage() {
-  const orders = await getOrders();
+const FILTERS = ["all", "paid", "fulfilled", "refunded"] as const;
+
+export default async function OrdersPage(props: PageProps<"/admin/orders">) {
+  const { status } = await props.searchParams;
+  const active = typeof status === "string" ? status : "all";
+  const orders = await getOrders(active === "all" ? undefined : active);
 
   return (
     <div>
-      <h1 className="mb-8 font-display text-4xl uppercase tracking-[-0.01em]">Orders</h1>
+      <h1 className="mb-6 font-display text-4xl uppercase tracking-[-0.01em]">Orders</h1>
+
+      <div className="mb-8 flex gap-5">
+        {FILTERS.map((f) => (
+          <Link
+            key={f}
+            href={f === "all" ? "/admin/orders" : `/admin/orders?status=${f}`}
+            className={`font-body text-[11px] uppercase tracking-[0.16em] no-underline ${
+              active === f ? "text-ch-gold" : "text-ch-fog hover:text-white"
+            }`}
+          >
+            {f}
+          </Link>
+        ))}
+      </div>
       {orders.length === 0 ? (
         <p className="font-narrow text-sm uppercase tracking-[0.12em] text-ch-muted">
           No orders yet.

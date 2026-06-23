@@ -62,12 +62,14 @@ export async function getProductById(
   return data ? sortVariants(data as unknown as ProductWithVariants) : null;
 }
 
-export async function getOrders(): Promise<Order[]> {
+export async function getOrders(status?: string): Promise<Order[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("orders")
     .select("*")
     .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
   if (error) throw error;
   return data as Order[];
 }
