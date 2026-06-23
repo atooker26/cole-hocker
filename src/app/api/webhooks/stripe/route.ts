@@ -144,7 +144,15 @@ export async function POST(request: NextRequest) {
     .single();
   const kirkPct = Number(settings?.kirk_pct ?? 0);
   const platformPct = Number(settings?.platform_pct ?? 0);
-  const split = computeSplit(subtotal, kirkPct, platformPct);
+  // Split on the item revenue ACTUALLY collected. amount_subtotal is the
+  // pre-discount item total, so subtract the discount; shipping/tax are excluded
+  // (they aren't in amount_subtotal). Falls back to the recomputed subtotal.
+  const discountCents = session.total_details?.amount_discount ?? 0;
+  const splitBase = Math.max(
+    0,
+    (session.amount_subtotal ?? subtotal) - discountCents,
+  );
+  const split = computeSplit(splitBase, kirkPct, platformPct);
 
   // The INSERT is the authoritative idempotency guard: the unique constraint on
   // stripe_checkout_session_id means a concurrent/duplicate delivery that raced
@@ -160,7 +168,7 @@ export async function POST(request: NextRequest) {
       stripe_checkout_session_id: session.id,
       stripe_payment_intent_id:
         typeof session.payment_intent === "string" ? session.payment_intent : null,
-      subtotal_cents: subtotal,
+      subtotal_cents: splitBase,
       shipping_cents: shippingCents,
       total_cents: totalCents,
       currency,
