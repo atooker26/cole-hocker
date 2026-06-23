@@ -210,6 +210,59 @@ export type Database = {
           },
         ]
       }
+      product_concepts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          images: Json
+          kirk_notified_at: string | null
+          notes: string | null
+          product_id: string | null
+          sizes: string | null
+          status: string
+          target_price_cents: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          images?: Json
+          kirk_notified_at?: string | null
+          notes?: string | null
+          product_id?: string | null
+          sizes?: string | null
+          status?: string
+          target_price_cents?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          images?: Json
+          kirk_notified_at?: string | null
+          notes?: string | null
+          product_id?: string | null
+          sizes?: string | null
+          status?: string
+          target_price_cents?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_concepts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           created_at: string

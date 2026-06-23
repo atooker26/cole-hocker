@@ -81,6 +81,29 @@ export async function notifyCustomer(order: {
   }
 }
 
+/** Email Kirk a new product concept brief. Best-effort. */
+export async function notifyKirkConcept(concept: {
+  title: string;
+  notes: string | null;
+  sizes: string | null;
+  targetPriceCents: number | null;
+  images: string[];
+  submittedBy: string | null;
+}): Promise<void> {
+  try {
+    await fetch("https://www.tegomarketing.com/api/webhooks/cole-hocker", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Webhook-Secret": process.env.WEBHOOK_SECRET ?? "",
+      },
+      body: JSON.stringify({ formType: "product-concept", ...concept }),
+    });
+  } catch (err) {
+    console.error("notifyKirkConcept failed:", err);
+  }
+}
+
 /** Email the buyer their tracking when an order ships. Best-effort. */
 export async function notifyShipped(order: {
   orderNumber: number;

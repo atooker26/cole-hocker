@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllProducts } from "@/lib/db/queries";
 import { formatPrice } from "@/lib/format";
+import StatusToggle from "@/components/admin/StatusToggle";
 
 export const metadata = { title: "Products — Shop Admin" };
 
@@ -48,13 +49,7 @@ export default async function AdminProductsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
-                  <span
-                    className={`font-body text-[10px] uppercase tracking-[0.16em] ${
-                      p.status === "active" ? "text-ch-green" : "text-ch-fog"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
+                  <StatusToggle productId={p.id} status={p.status} />
                   <span className="font-mono text-sm">{formatPrice(from)}</span>
                 </div>
               </Link>

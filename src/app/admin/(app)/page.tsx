@@ -8,20 +8,38 @@ export const metadata = { title: "Dashboard — Shop Admin" };
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  const [{ count: productCount }, { count: orderCount }, paidRes, recentRes] =
-    await Promise.all([
-      supabase.from("products").select("*", { count: "exact", head: true }),
-      supabase.from("orders").select("*", { count: "exact", head: true }),
-      supabase
-        .from("orders")
-        .select("total_cents")
-        .in("status", ["paid", "fulfilled"]),
-      supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(8),
-    ]);
+  const [
+    { count: productCount },
+    { count: orderCount },
+    paidRes,
+    recentRes,
+    lowStockRes,
+  ] = await Promise.all([
+    supabase.from("products").select("*", { count: "exact", head: true }),
+    supabase.from("orders").select("*", { count: "exact", head: true }),
+    supabase
+      .from("orders")
+      .select("total_cents")
+      .in("status", ["paid", "fulfilled"]),
+    supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("inventory")
+      .select("quantity, variant:variants(title, product:products(title))")
+      .eq("track", true)
+      .lte("quantity", 3)
+      .order("quantity", { ascending: true })
+      .limit(10),
+  ]);
+
+  type LowStock = {
+    quantity: number;
+    variant: { title: string; product: { title: string } | null } | null;
+  };
+  const lowStock = (lowStockRes.data ?? []) as unknown as LowStock[];
 
   const revenue = (paidRes.data ?? []).reduce(
     (sum, o) => sum + (o.total_cents ?? 0),
@@ -90,6 +108,29 @@ export default async function AdminDashboard() {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {lowStock.length > 0 && (
+        <div className="mt-12">
+          <h2 className="mb-4 font-body text-xs uppercase tracking-[0.24em] text-ch-gold">
+            Low stock
+          </h2>
+          <div className="divide-y divide-ch-border border-y border-ch-border">
+            {lowStock.map((row, i) => (
+              <div key={i} className="flex items-center justify-between py-3">
+                <span className="font-body text-sm text-white">
+                  {row.variant?.product?.title ?? "—"}
+                  <span className="text-ch-fog"> · {row.variant?.title ?? ""}</span>
+                </span>
+                <span
+                  className={`font-mono text-sm ${row.quantity === 0 ? "text-ch-gold" : "text-ch-muted"}`}
+                >
+                  {row.quantity} left
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

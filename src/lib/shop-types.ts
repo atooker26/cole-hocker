@@ -105,6 +105,28 @@ export type Settings = {
   updated_at: string;
 };
 
+export type ConceptStatus =
+  | "draft"
+  | "submitted"
+  | "in_production"
+  | "published"
+  | "archived";
+
+export type Concept = {
+  id: string;
+  title: string;
+  notes: string | null;
+  sizes: string | null;
+  target_price_cents: number | null;
+  images: string[];
+  status: ConceptStatus;
+  created_by: string | null;
+  product_id: string | null;
+  kirk_notified_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 /** A product joined with its variants + per-variant stock, for storefront/admin. */
 export type ProductWithVariants = Product & {
   variants: (Variant & { inventory: Pick<Inventory, "quantity" | "track"> | null })[];

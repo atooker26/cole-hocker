@@ -147,6 +147,22 @@ export async function updateProduct(
   return { ok: true, id };
 }
 
+export async function setProductStatus(
+  id: string,
+  status: "active" | "draft" | "archived",
+): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("products")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+  return { ok: true, id };
+}
+
 export async function deleteProduct(id: string): Promise<ActionResult> {
   await requireAdmin();
   const supabase = await createClient();
