@@ -78,6 +78,42 @@ function dollarsToCents(v: string): number {
   return Math.round((isNaN(n) ? 0 : n) * 100);
 }
 
+/**
+ * Download each Shopify image and re-host it in Supabase Storage so images keep
+ * working after the Shopify store is canceled (and load through next/image,
+ * which only allows the Supabase host). Deterministic paths → idempotent.
+ */
+async function rehostImages(handle: string, urls: string[]): Promise<string[]> {
+  const out: string[] = [];
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.error(`  image fetch failed (${res.status}): ${url}`);
+        continue;
+      }
+      const buf = Buffer.from(await res.arrayBuffer());
+      const ext = (url.split("?")[0].split(".").pop() || "jpg").toLowerCase();
+      const contentType = res.headers.get("content-type") || `image/${ext}`;
+      const path = `${handle}/${i}.${ext}`;
+      const { error } = await supabase.storage
+        .from("product-images")
+        .upload(path, buf, { contentType, upsert: true });
+      if (error) {
+        console.error(`  image upload failed (${path}): ${error.message}`);
+        continue;
+      }
+      out.push(
+        supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl,
+      );
+    } catch (e) {
+      console.error(`  image error ${url}:`, e);
+    }
+  }
+  return out;
+}
+
 async function main() {
   const text = readFileSync(CSV_PATH, "utf8");
   const records = parseCsv(text);
@@ -96,9 +132,10 @@ async function main() {
 
   for (const [handle, rowsForHandle] of byHandle) {
     const head = rowsForHandle[0];
-    const images = rowsForHandle
+    const shopifyImages = rowsForHandle
       .map((r) => r["Image Src"])
       .filter((s, i, arr) => s && arr.indexOf(s) === i);
+    const images = await rehostImages(handle, shopifyImages);
 
     const status = (head["Status"] || "active").toLowerCase();
     const { data: product, error: pErr } = await supabase

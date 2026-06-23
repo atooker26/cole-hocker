@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "migrate:shopify": "tsx scripts/migrate-shopify.ts",
+    "migrate:orders": "tsx scripts/migrate-orders.ts",
     "create:admin": "tsx scripts/create-admin.ts",
     "shipstation:subscribe": "tsx scripts/shipstation-subscribe.ts"
   },

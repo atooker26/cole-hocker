@@ -62,16 +62,38 @@ export async function getProductById(
   return data ? sortVariants(data as unknown as ProductWithVariants) : null;
 }
 
-export async function getOrders(status?: string): Promise<Order[]> {
+export async function getOrders(opts: {
+  status?: string;
+  q?: string;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<{ orders: Order[]; total: number; page: number; pageSize: number }> {
   const supabase = await createClient();
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = opts.pageSize ?? 50;
+  const from = (page - 1) * pageSize;
+
   let query = supabase
     .from("orders")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false });
-  if (status) query = query.eq("status", status);
-  const { data, error } = await query;
+
+  if (opts.status) query = query.eq("status", opts.status);
+
+  if (opts.q) {
+    // Sanitize so user input can't break the PostgREST or() filter syntax.
+    const safe = opts.q.trim().replace(/[^a-zA-Z0-9@._#\- ]/g, "");
+    if (safe) {
+      const numeric = /^\d+$/.test(safe) ? `,order_number.eq.${safe}` : "";
+      query = query.or(
+        `email.ilike.%${safe}%,shopify_order_id.ilike.%${safe}%${numeric}`,
+      );
+    }
+  }
+
+  const { data, error, count } = await query.range(from, from + pageSize - 1);
   if (error) throw error;
-  return data as Order[];
+  return { orders: (data ?? []) as Order[], total: count ?? 0, page, pageSize };
 }
 
 export async function getOrder(
