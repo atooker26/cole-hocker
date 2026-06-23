@@ -16,7 +16,13 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import ws from "ws";
 import { createClient } from "@supabase/supabase-js";
+
+// supabase-js eagerly constructs a realtime client; Node < 22 has no global
+// WebSocket, so polyfill it for this standalone script (the Next.js runtime
+// already provides one).
+(globalThis as { WebSocket?: unknown }).WebSocket ??= ws;
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
