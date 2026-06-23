@@ -326,6 +326,42 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule: {
+        Row: {
+          created_at: string
+          date: string
+          event: string
+          id: string
+          location: string
+          result: string | null
+          status: string
+          tag: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          event: string
+          id?: string
+          location?: string
+          result?: string | null
+          status?: string
+          tag?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          event?: string
+          id?: string
+          location?: string
+          result?: string | null
+          status?: string
+          tag?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           cole_connect_account_id: string | null

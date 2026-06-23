@@ -26,12 +26,16 @@ function formatDate(iso: string): { date: string; year: string } {
 
 async function getSchedule() {
   try {
-    const res = await fetch("https://www.tegomarketing.com/api/sites/cole-hocker/schedule", {
-      next: { revalidate: 60 },
-    });
+    // Managed in /admin/schedule. ISR-cached; admin edits call revalidatePath("/").
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/schedule?select=event,location,date,tag,result,status&order=date.asc`,
+      {
+        headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "" },
+        next: { revalidate: 60 },
+      },
+    );
     if (!res.ok) return null;
-    const data = await res.json();
-    return data.schedule as ScheduleEntry[];
+    return (await res.json()) as ScheduleEntry[];
   } catch {
     return null;
   }
