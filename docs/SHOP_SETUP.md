@@ -24,7 +24,10 @@ root) and mirror them into Vercel (Production + Preview).
 | `KIRK_NOTIFY_EMAIL` | server only | Where fulfillment notifications go |
 | `STRIPE_KIRK_ACCOUNT_ID` | server only | (optional) Kirk's Connect account |
 | `STRIPE_COLE_ACCOUNT_ID` | server only | (optional) Cole's Connect account |
-| `RESEND_API_KEY` | server only | (optional) if using Resend for notifications |
+| `WEBHOOK_SECRET` | server only | Auth for the TEGO webhook (email pipeline) |
+
+All shop emails (order to Kirk, customer confirmation, shipped) post to the TEGO
+webhook and are sent via TEGO's AWS/SES pipeline — no separate email provider.
 
 Connect IDs + the Kirk % are read from the `settings` table at runtime, so the
 env vars above are only a fallback / bootstrap. Real transfers turn on by setting
