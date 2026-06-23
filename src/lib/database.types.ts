@@ -136,12 +136,15 @@ export type Database = {
           platform_amount_cents: number
           shipping_address: Json | null
           shipping_cents: number
+          shipstation_order_id: string | null
           shopify_order_id: string | null
           status: string
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
           subtotal_cents: number
           total_cents: number
+          tracking_carrier: string | null
+          tracking_number: string | null
         }
         Insert: {
           cole_amount_cents?: number
@@ -160,12 +163,15 @@ export type Database = {
           platform_amount_cents?: number
           shipping_address?: Json | null
           shipping_cents?: number
+          shipstation_order_id?: string | null
           shopify_order_id?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal_cents?: number
           total_cents?: number
+          tracking_carrier?: string | null
+          tracking_number?: string | null
         }
         Update: {
           cole_amount_cents?: number
@@ -184,12 +190,15 @@ export type Database = {
           platform_amount_cents?: number
           shipping_address?: Json | null
           shipping_cents?: number
+          shipstation_order_id?: string | null
           shopify_order_id?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal_cents?: number
           total_cents?: number
+          tracking_carrier?: string | null
+          tracking_number?: string | null
         }
         Relationships: [
           {

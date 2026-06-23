@@ -80,3 +80,25 @@ export async function notifyCustomer(order: {
     console.error("notifyCustomer failed:", err);
   }
 }
+
+/** Email the buyer their tracking when an order ships. Best-effort. */
+export async function notifyShipped(order: {
+  orderNumber: number;
+  email: string;
+  trackingNumber: string;
+  carrier: string | null;
+}): Promise<void> {
+  if (!order.email) return;
+  try {
+    await fetch("https://www.tegomarketing.com/api/webhooks/cole-hocker", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Webhook-Secret": process.env.WEBHOOK_SECRET ?? "",
+      },
+      body: JSON.stringify({ formType: "order-shipped", ...order }),
+    });
+  } catch (err) {
+    console.error("notifyShipped failed:", err);
+  }
+}

@@ -76,6 +76,9 @@ export type Order = {
   connect_transfer_status: ConnectTransferStatus;
   connect_kirk_account_id: string | null;
   connect_cole_account_id: string | null;
+  tracking_number: string | null;
+  tracking_carrier: string | null;
+  shipstation_order_id: string | null;
   shopify_order_id: string | null;
   created_at: string;
 };

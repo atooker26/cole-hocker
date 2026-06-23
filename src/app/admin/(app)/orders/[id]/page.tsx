@@ -76,6 +76,16 @@ export default async function OrderDetailPage(
         </div>
       </div>
 
+      {order.tracking_number && (
+        <div className="mt-6 border border-ch-border p-4 font-mono text-sm">
+          <span className="text-ch-fog">Tracking: </span>
+          <span className="text-white">
+            {order.tracking_carrier ? `${order.tracking_carrier} · ` : ""}
+            {order.tracking_number}
+          </span>
+        </div>
+      )}
+
       <div className="mt-10 grid grid-cols-1 gap-8 border-t border-ch-border pt-8 sm:grid-cols-2">
         <div>
           <div className="mb-3 font-body text-[11px] uppercase tracking-[0.2em] text-ch-fog">
