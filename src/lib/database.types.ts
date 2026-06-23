@@ -337,6 +337,7 @@ export type Database = {
           platform_pct: number
           shipping_flat_cents: number
           free_shipping_threshold_cents: number
+          shipping_tiers: Json
           updated_at: string
         }
         Insert: {
@@ -349,6 +350,7 @@ export type Database = {
           platform_pct?: number
           shipping_flat_cents?: number
           free_shipping_threshold_cents?: number
+          shipping_tiers?: Json
           updated_at?: string
         }
         Update: {
@@ -361,6 +363,7 @@ export type Database = {
           platform_pct?: number
           shipping_flat_cents?: number
           free_shipping_threshold_cents?: number
+          shipping_tiers?: Json
           updated_at?: string
         }
         Relationships: []
