@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
   const rows = (variants ?? []) as unknown as Row[];
 
   const line_items = [];
+  let subtotalCents = 0;
   for (const item of parsed.data.items) {
     const v = rows.find((r) => r.id === item.variantId);
     if (!v || !v.product || v.product.status !== "active") {
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
         { status: 409 },
       );
     }
+    subtotalCents += v.price_cents * item.quantity;
     line_items.push({
       quantity: item.quantity,
       price_data: {
@@ -86,12 +88,35 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Configurable flat-rate shipping (free over an optional threshold).
+  const { data: shipSettings } = await supabase
+    .from("settings")
+    .select("shipping_flat_cents, free_shipping_threshold_cents")
+    .eq("id", 1)
+    .single();
+  const flat = shipSettings?.shipping_flat_cents ?? 0;
+  const threshold = shipSettings?.free_shipping_threshold_cents ?? 0;
+  const freeShip = threshold > 0 && subtotalCents >= threshold;
+  const shipping_options =
+    flat > 0 || freeShip
+      ? [
+          {
+            shipping_rate_data: {
+              type: "fixed_amount" as const,
+              fixed_amount: { amount: freeShip ? 0 : flat, currency: "usd" },
+              display_name: freeShip ? "Free shipping" : "Standard shipping",
+            },
+          },
+        ]
+      : undefined;
+
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
     line_items,
     success_url: `${siteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl()}/cart`,
     shipping_address_collection: { allowed_countries: ["US", "CA"] },
+    ...(shipping_options ? { shipping_options } : {}),
     customer_creation: "always",
     allow_promotion_codes: true,
     metadata: {

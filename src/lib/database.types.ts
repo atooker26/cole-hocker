@@ -335,6 +335,8 @@ export type Database = {
           kirk_pct: number
           notify_email: string | null
           platform_pct: number
+          shipping_flat_cents: number
+          free_shipping_threshold_cents: number
           updated_at: string
         }
         Insert: {
@@ -345,6 +347,8 @@ export type Database = {
           kirk_pct?: number
           notify_email?: string | null
           platform_pct?: number
+          shipping_flat_cents?: number
+          free_shipping_threshold_cents?: number
           updated_at?: string
         }
         Update: {
@@ -355,6 +359,8 @@ export type Database = {
           kirk_pct?: number
           notify_email?: string | null
           platform_pct?: number
+          shipping_flat_cents?: number
+          free_shipping_threshold_cents?: number
           updated_at?: string
         }
         Relationships: []

@@ -102,6 +102,8 @@ export type Settings = {
   cole_connect_account_id: string | null;
   connect_enabled: boolean;
   notify_email: string | null;
+  shipping_flat_cents: number;
+  free_shipping_threshold_cents: number;
   updated_at: string;
 };
 
