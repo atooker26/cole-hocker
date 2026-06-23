@@ -88,27 +88,48 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Configurable flat-rate shipping (free over an optional threshold).
+  // Configurable tiered shipping (free over an optional threshold). Each tier
+  // becomes a Stripe shipping option with a delivery estimate.
   const { data: shipSettings } = await supabase
     .from("settings")
-    .select("shipping_flat_cents, free_shipping_threshold_cents")
+    .select("shipping_tiers, free_shipping_threshold_cents")
     .eq("id", 1)
     .single();
-  const flat = shipSettings?.shipping_flat_cents ?? 0;
+  const tiers = (shipSettings?.shipping_tiers ?? []) as unknown as {
+    name: string;
+    amount_cents: number;
+    min_days: number;
+    max_days: number;
+  }[];
   const threshold = shipSettings?.free_shipping_threshold_cents ?? 0;
   const freeShip = threshold > 0 && subtotalCents >= threshold;
-  const shipping_options =
-    flat > 0 || freeShip
-      ? [
-          {
-            shipping_rate_data: {
-              type: "fixed_amount" as const,
-              fixed_amount: { amount: freeShip ? 0 : flat, currency: "usd" },
-              display_name: freeShip ? "Free shipping" : "Standard shipping",
-            },
-          },
-        ]
-      : undefined;
+
+  const tierOptions = tiers
+    .filter((t) => t.name)
+    .map((t) => ({
+      shipping_rate_data: {
+        type: "fixed_amount" as const,
+        fixed_amount: { amount: t.amount_cents, currency: "usd" },
+        display_name: t.name,
+        ...(t.min_days > 0 && t.max_days > 0
+          ? {
+              delivery_estimate: {
+                minimum: { unit: "business_day" as const, value: t.min_days },
+                maximum: { unit: "business_day" as const, value: t.max_days },
+              },
+            }
+          : {}),
+      },
+    }));
+  const freeOption = {
+    shipping_rate_data: {
+      type: "fixed_amount" as const,
+      fixed_amount: { amount: 0, currency: "usd" },
+      display_name: "Free shipping",
+    },
+  };
+  const allOptions = freeShip ? [freeOption, ...tierOptions] : tierOptions;
+  const shipping_options = allOptions.length > 0 ? allOptions.slice(0, 5) : undefined;
 
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",

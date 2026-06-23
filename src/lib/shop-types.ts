@@ -94,6 +94,13 @@ export type OrderItem = {
   subtotal_cents: number;
 };
 
+export type ShippingTier = {
+  name: string;
+  amount_cents: number;
+  min_days: number;
+  max_days: number;
+};
+
 export type Settings = {
   id: number;
   kirk_pct: number;
@@ -104,6 +111,7 @@ export type Settings = {
   notify_email: string | null;
   shipping_flat_cents: number;
   free_shipping_threshold_cents: number;
+  shipping_tiers: ShippingTier[];
   updated_at: string;
 };
 

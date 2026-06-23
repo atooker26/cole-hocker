@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { updateSettings } from "@/lib/actions/settings";
 import type { Settings } from "@/lib/shop-types";
 
+type TierRow = { name: string; price: string; min: string; max: string };
+
 const inputClass =
   "bg-transparent px-3 py-2 font-body text-sm text-white shadow-[inset_0_0_0_1px_#2A2A2D] outline-none placeholder:text-ch-fog focus:shadow-[inset_0_0_0_1px_#C9A24B]";
 
@@ -16,8 +18,13 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
   const [coleId, setColeId] = useState(settings.cole_connect_account_id ?? "");
   const [connectEnabled, setConnectEnabled] = useState(settings.connect_enabled);
   const [notifyEmail, setNotifyEmail] = useState(settings.notify_email ?? "");
-  const [shipFlat, setShipFlat] = useState(
-    settings.shipping_flat_cents ? (settings.shipping_flat_cents / 100).toFixed(2) : "",
+  const [tiers, setTiers] = useState<TierRow[]>(
+    (settings.shipping_tiers ?? []).map((t) => ({
+      name: t.name,
+      price: (t.amount_cents / 100).toFixed(2),
+      min: String(t.min_days),
+      max: String(t.max_days),
+    })),
   );
   const [freeOver, setFreeOver] = useState(
     settings.free_shipping_threshold_cents
@@ -40,7 +47,14 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
       cole_connect_account_id: coleId || null,
       connect_enabled: connectEnabled,
       notify_email: notifyEmail || null,
-      shipping_flat_cents: shipFlat ? Math.round(parseFloat(shipFlat) * 100) : 0,
+      shipping_tiers: tiers
+        .filter((t) => t.name.trim())
+        .map((t) => ({
+          name: t.name.trim(),
+          amount_cents: Math.round(parseFloat(t.price || "0") * 100),
+          min_days: parseInt(t.min || "0", 10),
+          max_days: parseInt(t.max || "0", 10),
+        })),
       free_shipping_threshold_cents: freeOver
         ? Math.round(parseFloat(freeOver) * 100)
         : 0,
@@ -105,35 +119,84 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
           <div className="mb-4 font-body text-[11px] uppercase tracking-[0.2em] text-ch-gold">
             Shipping
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <label className="flex flex-col gap-2">
-              <span className="font-body text-[11px] uppercase tracking-[0.2em] text-ch-fog">
-                Flat rate ($)
-              </span>
-              <input
-                className={inputClass}
-                value={shipFlat}
-                inputMode="decimal"
-                placeholder="5.00"
-                onChange={(e) => setShipFlat(e.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="font-body text-[11px] uppercase tracking-[0.2em] text-ch-fog">
-                Free over ($, 0 = off)
-              </span>
-              <input
-                className={inputClass}
-                value={freeOver}
-                inputMode="decimal"
-                placeholder="75.00"
-                onChange={(e) => setFreeOver(e.target.value)}
-              />
-            </label>
+
+          <div className="grid grid-cols-[1fr_80px_60px_60px_28px] gap-2 font-mono text-[10px] uppercase text-ch-fog">
+            <span>Name</span>
+            <span>Price $</span>
+            <span>Min d</span>
+            <span>Max d</span>
+            <span />
           </div>
+          {tiers.map((t, i) => (
+            <div key={i} className="grid grid-cols-[1fr_80px_60px_60px_28px] items-center gap-2 mt-2">
+              <input
+                className={inputClass}
+                value={t.name}
+                placeholder="Standard"
+                onChange={(e) =>
+                  setTiers((p) => p.map((r, idx) => (idx === i ? { ...r, name: e.target.value } : r)))
+                }
+              />
+              <input
+                className={inputClass}
+                value={t.price}
+                inputMode="decimal"
+                placeholder="15.00"
+                onChange={(e) =>
+                  setTiers((p) => p.map((r, idx) => (idx === i ? { ...r, price: e.target.value } : r)))
+                }
+              />
+              <input
+                className={inputClass}
+                value={t.min}
+                inputMode="numeric"
+                onChange={(e) =>
+                  setTiers((p) => p.map((r, idx) => (idx === i ? { ...r, min: e.target.value } : r)))
+                }
+              />
+              <input
+                className={inputClass}
+                value={t.max}
+                inputMode="numeric"
+                onChange={(e) =>
+                  setTiers((p) => p.map((r, idx) => (idx === i ? { ...r, max: e.target.value } : r)))
+                }
+              />
+              <button
+                type="button"
+                onClick={() => setTiers((p) => p.filter((_, idx) => idx !== i))}
+                className="text-ch-fog hover:text-white"
+                aria-label="Remove tier"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setTiers((p) => [...p, { name: "", price: "", min: "", max: "" }])
+            }
+            className="mt-3 self-start font-body text-[11px] uppercase tracking-[0.16em] text-ch-gold"
+          >
+            + Add tier
+          </button>
+
+          <label className="mt-5 flex flex-col gap-2">
+            <span className="font-body text-[11px] uppercase tracking-[0.2em] text-ch-fog">
+              Free over ($, 0 = off)
+            </span>
+            <input
+              className={`${inputClass} max-w-[160px]`}
+              value={freeOver}
+              inputMode="decimal"
+              placeholder="75.00"
+              onChange={(e) => setFreeOver(e.target.value)}
+            />
+          </label>
           <span className="mt-2 block font-mono text-[11px] text-ch-fog">
-            Charged once per order at checkout. Leave flat rate blank/0 for free
-            shipping. Not part of the Kirk/Cole/TEGO split.
+            Customer picks a tier at checkout. No tiers = free shipping. Free-over
+            adds a $0 option past the threshold. Shipping isn&apos;t part of the split.
           </span>
         </div>
 
