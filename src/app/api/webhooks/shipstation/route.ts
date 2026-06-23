@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
 
     if (s.trackingNumber && order.email && order.fulfillment_status !== "fulfilled") {
       await notifyShipped({
+        dedupeKey: `shipped:${order.id}`,
         orderNumber: order.order_number,
         email: order.email,
         trackingNumber: s.trackingNumber,

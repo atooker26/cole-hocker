@@ -41,6 +41,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_log: {
+        Row: {
+          created_at: string
+          dedupe_key: string
+          id: string
+          message_id: string | null
+          recipient: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          message_id?: string | null
+          recipient: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          message_id?: string | null
+          recipient?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           quantity: number

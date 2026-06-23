@@ -262,8 +262,20 @@ export async function POST(request: NextRequest) {
   }
 
   await Promise.all([
-    notifyKirk({ orderNumber, email, items: notifyItems, shippingAddress, totalCents }),
-    notifyCustomer({ orderNumber, email, items: notifyItems, totalCents }),
+    notifyKirk({
+      dedupeKey: `new-order-kirk:${session.id}`,
+      orderNumber,
+      email,
+      items: notifyItems,
+      shippingAddress,
+    }),
+    notifyCustomer({
+      dedupeKey: `order-confirmation:${session.id}`,
+      orderNumber,
+      email,
+      items: notifyItems,
+      totalCents,
+    }),
   ]);
 
   revalidatePath("/admin/orders");

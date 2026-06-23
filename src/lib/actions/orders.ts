@@ -45,6 +45,7 @@ export async function setFulfillment(input: {
   // Email the buyer their tracking when newly fulfilled with a number.
   if (fulfilled && tracking && order?.email) {
     await notifyShipped({
+      dedupeKey: `shipped:${orderId}`,
       orderNumber: order.order_number,
       email: order.email,
       trackingNumber: tracking,

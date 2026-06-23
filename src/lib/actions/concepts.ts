@@ -98,6 +98,9 @@ export async function sendConceptToKirk(id: string): Promise<Result> {
   if (error || !concept) return { ok: false, error: error?.message ?? "Not found" };
 
   await notifyKirkConcept({
+    // Stable per edit: editing bumps updated_at (resend allowed); a double-click
+    // without an edit reuses the key and is deduped.
+    dedupeKey: `concept:${id}:${concept.updated_at}`,
     title: concept.title,
     notes: concept.notes,
     sizes: concept.sizes,
@@ -108,11 +111,7 @@ export async function sendConceptToKirk(id: string): Promise<Result> {
 
   await supabase
     .from("product_concepts")
-    .update({
-      status: "submitted",
-      kirk_notified_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
+    .update({ status: "submitted", kirk_notified_at: new Date().toISOString() })
     .eq("id", id);
 
   revalidatePath("/admin/concepts");
