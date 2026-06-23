@@ -37,6 +37,14 @@ export async function createDiscount(input: DiscountInput): Promise<Result> {
   if (d.type === "percent" && (d.value < 1 || d.value > 100)) {
     return { ok: false, error: "Percent must be between 1 and 100." };
   }
+  let expiresAtUnix: number | undefined;
+  if (d.expiresAt) {
+    const exp = new Date(`${d.expiresAt}T23:59:59`).getTime();
+    if (exp <= Date.now()) {
+      return { ok: false, error: "Expiry must be in the future." };
+    }
+    expiresAtUnix = Math.floor(exp / 1000);
+  }
 
   const stripe = getStripe();
   try {
@@ -50,14 +58,18 @@ export async function createDiscount(input: DiscountInput): Promise<Result> {
             name: d.code.toUpperCase(),
           },
     );
-    await stripe.promotionCodes.create({
-      promotion: { type: "coupon", coupon: coupon.id },
-      code: d.code.toUpperCase(),
-      ...(d.maxRedemptions ? { max_redemptions: d.maxRedemptions } : {}),
-      ...(d.expiresAt
-        ? { expires_at: Math.floor(new Date(`${d.expiresAt}T23:59:59`).getTime() / 1000) }
-        : {}),
-    });
+    try {
+      await stripe.promotionCodes.create({
+        promotion: { type: "coupon", coupon: coupon.id },
+        code: d.code.toUpperCase(),
+        ...(d.maxRedemptions ? { max_redemptions: d.maxRedemptions } : {}),
+        ...(expiresAtUnix ? { expires_at: expiresAtUnix } : {}),
+      });
+    } catch (e) {
+      // Don't leave an orphaned coupon behind (e.g. duplicate code).
+      await stripe.coupons.del(coupon.id).catch(() => {});
+      throw e;
+    }
     revalidatePath("/admin/discounts");
     return { ok: true };
   } catch (e) {
