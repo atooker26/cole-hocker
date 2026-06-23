@@ -57,6 +57,22 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 # test card: 4242 4242 4242 4242, any future expiry / CVC / ZIP
 ```
 
+## ShipStation (fulfillment)
+
+Inert until configured. When `SHIPSTATION_API_KEY` + `SHIPSTATION_API_SECRET`
+are set, each paid order is pushed to ShipStation (`orders.shipstation_order_id`
+is stored). When Kirk ships, ShipStation calls our `SHIP_NOTIFY` webhook and we
+write the tracking number back to the order, mark it fulfilled, and email the
+customer.
+
+Setup:
+1. ShipStation → Account → API Settings → generate an **API Key + Secret**.
+2. Set `SHIPSTATION_API_KEY`, `SHIPSTATION_API_SECRET`, and a random
+   `SHIPSTATION_WEBHOOK_TOKEN` (any long secret string) in env + Vercel.
+3. Register the inbound webhook (production URL must be public):
+   `npm run shipstation:subscribe`
+   This subscribes `SHIP_NOTIFY` → `/api/webhooks/shipstation?token=…`.
+
 ## Shopify migration
 
 Export Products CSV + Orders/Customers CSV from Shopify, then:

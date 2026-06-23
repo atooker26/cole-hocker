@@ -4,6 +4,8 @@
  * Usage: ADMIN_EMAIL=you@x.com ADMIN_PASSWORD=secret npm run create:admin
  * Since there's no public signup, any user that exists is an admin.
  */
+export {}; // treat as a module so script-scoped consts don't collide
+
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const email = process.env.ADMIN_EMAIL;

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "migrate:shopify": "tsx scripts/migrate-shopify.ts",
-    "create:admin": "tsx scripts/create-admin.ts"
+    "create:admin": "tsx scripts/create-admin.ts",
+    "shipstation:subscribe": "tsx scripts/shipstation-subscribe.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

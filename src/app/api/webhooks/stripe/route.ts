@@ -6,6 +6,10 @@ import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeSplit } from "@/lib/split";
 import { notifyKirk, notifyCustomer } from "@/lib/notify";
+import {
+  shipstationConfigured,
+  createShipstationOrder,
+} from "@/lib/shipstation";
 import type { Json } from "@/lib/database.types";
 
 export const runtime = "nodejs";
@@ -234,6 +238,29 @@ export async function POST(request: NextRequest) {
     quantity: i.quantity,
   }));
   const orderNumber = inserted?.order_number ?? 0;
+
+  // Push to ShipStation for fulfillment (best-effort; inert until configured).
+  if (shipstationConfigured()) {
+    const ssId = await createShipstationOrder({
+      orderNumber: String(orderNumber),
+      orderDate: new Date().toISOString(),
+      email,
+      amountPaidCents: totalCents,
+      shippingAddress,
+      items: items.map((i) => ({
+        name: `${i.product_title} — ${i.variant_title}`,
+        quantity: i.quantity,
+        unitPriceCents: i.unit_price_cents,
+      })),
+    });
+    if (ssId) {
+      await supabase
+        .from("orders")
+        .update({ shipstation_order_id: ssId })
+        .eq("id", orderId);
+    }
+  }
+
   await Promise.all([
     notifyKirk({ orderNumber, email, items: notifyItems, shippingAddress, totalCents }),
     notifyCustomer({ orderNumber, email, items: notifyItems, totalCents }),
