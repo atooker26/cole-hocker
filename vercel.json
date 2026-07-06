@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/shipstation-reconcile",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

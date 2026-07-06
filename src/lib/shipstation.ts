@@ -90,9 +90,29 @@ export async function createShipstationOrder(
 
 export type ShipstationShipment = {
   orderId: string;
+  orderNumber: string | null;
   trackingNumber: string | null;
   carrierCode: string | null;
+  voided: boolean;
 };
+
+type RawShipment = {
+  orderId?: number | string;
+  orderNumber?: number | string | null;
+  trackingNumber?: string | null;
+  carrierCode?: string | null;
+  voided?: boolean;
+};
+
+function mapShipment(s: RawShipment): ShipstationShipment {
+  return {
+    orderId: String(s.orderId ?? ""),
+    orderNumber: s.orderNumber != null ? String(s.orderNumber) : null,
+    trackingNumber: s.trackingNumber ?? null,
+    carrierCode: s.carrierCode ?? null,
+    voided: s.voided === true,
+  };
+}
 
 /** Fetch shipments from a SHIP_NOTIFY resource_url. */
 export async function fetchShipments(
@@ -103,20 +123,43 @@ export async function fetchShipments(
   try {
     const res = await fetch(resourceUrl, { headers: { Authorization: auth } });
     if (!res.ok) return [];
-    const data = (await res.json()) as {
-      shipments?: {
-        orderId: number | string;
-        trackingNumber?: string | null;
-        carrierCode?: string | null;
-      }[];
-    };
-    return (data.shipments ?? []).map((s) => ({
-      orderId: String(s.orderId),
-      trackingNumber: s.trackingNumber ?? null,
-      carrierCode: s.carrierCode ?? null,
-    }));
+    const data = (await res.json()) as { shipments?: RawShipment[] };
+    return (data.shipments ?? []).map(mapShipment);
   } catch (err) {
     console.error("shipstation fetchShipments error", err);
     return [];
   }
+}
+
+/**
+ * List shipments created on/after `sinceISO` (paginated). Used by the reconcile
+ * cron to catch tracking edits that ShipStation never pushes via SHIP_NOTIFY.
+ */
+export async function listRecentShipments(
+  sinceISO: string,
+): Promise<ShipstationShipment[]> {
+  const auth = authHeader();
+  if (!auth) return [];
+  const shipments: ShipstationShipment[] = [];
+  try {
+    for (let page = 1; ; page++) {
+      const url =
+        `${BASE}/shipments?includeShipmentItems=false&pageSize=500` +
+        `&shipDateStart=${encodeURIComponent(sinceISO)}&page=${page}`;
+      const res = await fetch(url, { headers: { Authorization: auth } });
+      if (!res.ok) {
+        console.error("shipstation listShipments failed", res.status);
+        break;
+      }
+      const data = (await res.json()) as {
+        shipments?: RawShipment[];
+        pages?: number;
+      };
+      shipments.push(...(data.shipments ?? []).map(mapShipment));
+      if (!data.pages || page >= data.pages) break;
+    }
+  } catch (err) {
+    console.error("shipstation listRecentShipments error", err);
+  }
+  return shipments;
 }

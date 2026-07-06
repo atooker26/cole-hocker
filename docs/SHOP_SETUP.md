@@ -25,6 +25,10 @@ root) and mirror them into Vercel (Production + Preview).
 | `STRIPE_KIRK_ACCOUNT_ID` | server only | (optional) Kirk's Connect account |
 | `STRIPE_COLE_ACCOUNT_ID` | server only | (optional) Cole's Connect account |
 | `WEBHOOK_SECRET` | server only | Auth for the TEGO webhook (email pipeline) |
+| `SHIPSTATION_API_KEY` | server only | ShipStation API key (fulfillment push/pull) |
+| `SHIPSTATION_API_SECRET` | server only | ShipStation API secret |
+| `SHIPSTATION_WEBHOOK_TOKEN` | server only | Shared token guarding the SHIP_NOTIFY webhook |
+| `CRON_SECRET` | server only | Bearer token for the ShipStation reconcile cron |
 
 All shop emails (order to Kirk, customer confirmation, shipped) post to the TEGO
 webhook and are sent via TEGO's AWS/SES pipeline — no separate email provider.
@@ -68,10 +72,16 @@ is stored). When Kirk ships, ShipStation calls our `SHIP_NOTIFY` webhook and we
 write the tracking number back to the order, mark it fulfilled, and email the
 customer.
 
+Tracking is matched to an order by `shipstation_order_id`, falling back to the
+order number. Because ShipStation's legacy API never pushes an event when a
+tracking number is *edited* on an existing shipment, an hourly cron
+(`/api/cron/shipstation-reconcile`, scheduled in `vercel.json`) pulls the last 7
+days of shipments and re-syncs tracking. It's guarded by `CRON_SECRET`.
+
 Setup:
 1. ShipStation → Account → API Settings → generate an **API Key + Secret**.
-2. Set `SHIPSTATION_API_KEY`, `SHIPSTATION_API_SECRET`, and a random
-   `SHIPSTATION_WEBHOOK_TOKEN` (any long secret string) in env + Vercel.
+2. Set `SHIPSTATION_API_KEY`, `SHIPSTATION_API_SECRET`, a random
+   `SHIPSTATION_WEBHOOK_TOKEN`, and a random `CRON_SECRET` in env + Vercel.
 3. Register the inbound webhook (production URL must be public):
    `npm run shipstation:subscribe`
    This subscribes `SHIP_NOTIFY` → `/api/webhooks/shipstation?token=…`.

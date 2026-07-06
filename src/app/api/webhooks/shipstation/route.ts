@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchShipments } from "@/lib/shipstation";
-import { notifyShipped } from "@/lib/notify";
+import { applyShipmentTracking } from "@/lib/shipstation-sync";
 
 export const runtime = "nodejs";
 
@@ -31,32 +31,7 @@ export async function POST(request: NextRequest) {
   const supabase = createAdminClient();
 
   for (const s of shipments) {
-    const { data: order } = await supabase
-      .from("orders")
-      .select("id, order_number, email, fulfillment_status")
-      .eq("shipstation_order_id", s.orderId)
-      .maybeSingle();
-    if (!order) continue;
-
-    await supabase
-      .from("orders")
-      .update({
-        fulfillment_status: "fulfilled",
-        status: "fulfilled",
-        tracking_number: s.trackingNumber,
-        tracking_carrier: s.carrierCode,
-      })
-      .eq("id", order.id);
-
-    if (s.trackingNumber && order.email && order.fulfillment_status !== "fulfilled") {
-      await notifyShipped({
-        dedupeKey: `shipped:${order.id}`,
-        orderNumber: order.order_number,
-        email: order.email,
-        trackingNumber: s.trackingNumber,
-        carrier: s.carrierCode,
-      });
-    }
+    await applyShipmentTracking(supabase, s);
   }
 
   revalidatePath("/admin/orders");
