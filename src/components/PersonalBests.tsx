@@ -25,6 +25,9 @@ async function getPersonalBests(): Promise<PB[] | null> {
       {
         headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "" },
         next: { revalidate: 60 },
+        // A hung request must not stall the prerender: Next kills a page that
+        // takes over 60s, which fails the whole build.
+        signal: AbortSignal.timeout(8000),
       },
     );
     if (!res.ok) return null;
