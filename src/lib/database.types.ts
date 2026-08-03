@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          sort_order: number
+          subtitle: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+          subtitle?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+          subtitle?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
@@ -289,6 +319,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      personal_bests: {
+        Row: {
+          created_at: string
+          event: string
+          highlight: boolean
+          id: string
+          note: string
+          sort_order: number
+          time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          highlight?: boolean
+          id?: string
+          note?: string
+          sort_order?: number
+          time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          highlight?: boolean
+          id?: string
+          note?: string
+          sort_order?: number
+          time?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
