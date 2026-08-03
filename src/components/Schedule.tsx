@@ -8,14 +8,6 @@ type ScheduleEntry = {
   status: string;
 };
 
-const FALLBACK_SCHEDULE = [
-  { date: "JAN 23", year: "2026", name: "Hokie Invitational", loc: "Blacksburg, VA", tag: "Indoor" },
-  { date: "FEB 01", year: "2026", name: "Millrose Games", loc: "New York, NY", tag: "Indoor" },
-  { date: "FEB 14", year: "2026", name: "The Sound Invite", loc: "North Carolina", tag: "Indoor" },
-  { date: "FEB 28", year: "2026", name: "USA Indoors", loc: "New York, NY", tag: "Championship" },
-  { date: "MAR 20", year: "2026", name: "World Indoor Championships", loc: "Poland", tag: "Championship" },
-];
-
 function formatDate(iso: string): { date: string; year: string } {
   const d = new Date(iso);
   const month = d.toLocaleString("en-US", { month: "short", timeZone: "UTC" }).toUpperCase();
@@ -43,14 +35,14 @@ async function getSchedule() {
 
 export default async function Schedule() {
   const entries = await getSchedule();
-  const hasApi = entries && entries.length > 0;
 
-  const schedule = hasApi
-    ? entries.map((e) => {
-        const { date, year } = formatDate(e.date);
-        return { date, year, name: e.event, loc: e.location, tag: e.tag };
-      })
-    : FALLBACK_SCHEDULE;
+  // No hardcoded fallback: an empty table means the calendar is genuinely empty
+  // (or every race was deleted in /admin/schedule), and stale races resurfacing
+  // here would be worse than showing nothing.
+  const schedule = (entries ?? []).map((e) => {
+    const { date, year } = formatDate(e.date);
+    return { date, year, name: e.event, loc: e.location, tag: e.tag };
+  });
 
   const eventCount = schedule.length;
   const firstMonth = schedule[0]?.date.split(" ")[0] ?? "";
@@ -65,7 +57,7 @@ export default async function Schedule() {
               Race Calendar
             </div>
             <h2 className="font-display text-[clamp(48px,6vw,88px)] leading-[0.95] uppercase m-0 tracking-[-0.01em]">
-              {schedule[0]?.year ?? "2026"}
+              {schedule[0]?.year ?? String(new Date().getUTCFullYear())}
               <br />
               Schedule
             </h2>
@@ -77,6 +69,11 @@ export default async function Schedule() {
         </div>
 
         <div>
+          {schedule.length === 0 && (
+            <div className="border-y border-ch-border py-7 font-narrow text-xs tracking-[0.24em] uppercase text-ch-muted">
+              Schedule to be announced
+            </div>
+          )}
           {schedule.map((e, i) => (
             <div
               key={i}
