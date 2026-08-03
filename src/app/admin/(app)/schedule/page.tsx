@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ScheduleRowActions from "@/components/admin/ScheduleRowActions";
 import { createClient } from "@/lib/supabase/server";
 import type { ScheduleEntry } from "@/lib/shop-types";
 
@@ -41,11 +42,17 @@ export default async function AdminSchedulePage() {
       ) : (
         <div className="divide-y divide-ch-border border-y border-ch-border">
           {entries.map((e) => (
-            <Link
+            <div
               key={e.id}
-              href={`/admin/schedule/${e.id}`}
-              className="grid grid-cols-[110px_1fr_auto] items-center gap-4 py-4 no-underline"
+              className="relative grid grid-cols-[110px_1fr_auto_auto] items-center gap-4 py-4"
             >
+              {/* Stretched link: covers the row so the whole thing stays
+                  clickable, while the delete button sits above it. */}
+              <Link
+                href={`/admin/schedule/${e.id}`}
+                aria-label={`Edit ${e.event}`}
+                className="absolute inset-0 no-underline"
+              />
               <span className="font-mono text-sm text-white">{fmt(e.date)}</span>
               <span>
                 <span className="font-body text-sm font-bold uppercase tracking-[0.06em] text-white">
@@ -67,7 +74,10 @@ export default async function AdminSchedulePage() {
                   {e.tag}
                 </span>
               </span>
-            </Link>
+              <span className="relative">
+                <ScheduleRowActions id={e.id} event={e.event} />
+              </span>
+            </div>
           ))}
         </div>
       )}

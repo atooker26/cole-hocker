@@ -1,7 +1,7 @@
 const PBS = [
   { event: "800 m", time: "1:45", note: "Personal Best", gold: false },
-  { event: "1500 m", time: "3:27", note: "OR \u00b7 NR \u00b7 #2 All-Time", gold: true },
-  { event: "1 Mile", time: "3:45", note: "North American Record", gold: false },
+  { event: "1500 m", time: "3:27", note: "OR \u00b7 AR", gold: true },
+  { event: "1 Mile", time: "3:45", note: "Indoor American Record", gold: false },
   { event: "3000 m", time: "7:23", note: "#2 All-Time Indoor", gold: false },
   { event: "5000 m", time: "12:57", note: "Personal Best", gold: false },
 ];
