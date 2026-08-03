@@ -108,6 +108,27 @@ export type ScheduleEntry = {
   updated_at: string;
 };
 
+export type Achievement = {
+  id: string;
+  title: string; // newlines are the badge's line breaks
+  subtitle: string;
+  image_url: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalBest = {
+  id: string;
+  event: string;
+  time: string;
+  note: string;
+  highlight: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ShippingTier = {
   name: string;
   amount_cents: number;
