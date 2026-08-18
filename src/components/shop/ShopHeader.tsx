@@ -9,13 +9,16 @@ export default function ShopHeader() {
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ch-border bg-black/90 px-6 py-5 backdrop-blur md:px-12">
-      <Link href="/" aria-label="Home">
+      <Link href="/" aria-label="Cole Hocker — home">
         <Image
           src="/assets/signature-ch.webp"
-          alt="C.H."
-          width={72}
-          height={36}
-          className="h-[36px] w-auto invert"
+          alt="Cole Hocker"
+          width={192}
+          height={96}
+          // Smaller than the marketing header because this one is sticky and
+          // eats vertical space on every shop screen — but scaled with it, and
+          // it needs no shadow: the bar behind it is solid black already.
+          className="h-[44px] w-auto invert md:h-[52px]"
         />
       </Link>
 
