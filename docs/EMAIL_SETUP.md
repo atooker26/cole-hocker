@@ -159,6 +159,34 @@ This is the same pattern as Sorted's `src/lib/email/log.ts`.
 Webhooks are exactly where idempotency matters — both Stripe and ShipStation
 retry, so always go through `sendOnce`.
 
+## Newsletter capture (the "Get Updates" form)
+
+Marketing signups are a different path from transactional sends: they create a
+**Contact** on the TEGO email account behind `colehocker.com`, which is the list
+a campaign actually sends to.
+
+```
+EmailSignup.tsx --POST /api/subscribe--> this app --POST /api/v1/contacts (Bearer key)--> TEGO
+```
+
+- Route: `src/app/api/subscribe/route.ts` → `src/lib/subscribe.ts`.
+- Auth: `TEGO_CONTACTS_API_KEY` — a **server-only** key scoped `contacts:write`
+  and bound to the Cole Hocker account, so no `accountId` travels in the request.
+- Every signup is tagged `site-signup`. Upserts by `(account, email)`; tags union
+  rather than replace, so re-submitting never drops existing tags.
+
+| Var | Scope | Purpose |
+| --- | --- | --- |
+| `TEGO_CONTACTS_API_KEY` | server only | Key scoped `contacts:write`, bound to Cole Hocker. |
+
+**Do not** post signups to `https://www.tegomarketing.com/api/webhooks/cole-hocker`.
+That is what this form used to do and it was dead for months: the secret it needs
+was read from `NEXT_PUBLIC_WEBHOOK_SECRET`, which was never set in Vercel, so the
+browser sent an empty header and TEGO answered `401 Missing secret` on every
+submit. Worse, that webhook only appends a **site-admin submission** — it never
+creates a Contact, so even a working secret would not have built a list. A secret
+in a `NEXT_PUBLIC_*` var is also published in the client bundle by definition.
+
 ## Gotchas
 
 - **`from` is server-derived** — you cannot set sender name/address from here.

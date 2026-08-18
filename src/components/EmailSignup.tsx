@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function EmailSignup() {
   const [email, setEmail] = useState("");
+  const [hp, setHp] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -12,16 +13,10 @@ export default function EmailSignup() {
 
     setStatus("sending");
     try {
-      const res = await fetch("https://www.tegomarketing.com/api/webhooks/cole-hocker", {
+      const res = await fetch("/api/subscribe", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Webhook-Secret": process.env.NEXT_PUBLIC_WEBHOOK_SECRET ?? "",
-        },
-        body: JSON.stringify({
-          formType: "email-signup",
-          email: email.trim(),
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), _hp: hp }),
       });
       if (res.ok) {
         setStatus("success");
@@ -68,6 +63,16 @@ export default function EmailSignup() {
             >
               {status === "sending" ? "..." : "Sign Up →"}
             </button>
+            {/* Honeypot — hidden from humans, filled by bots. */}
+            <input
+              name="_hp"
+              type="text"
+              value={hp}
+              onChange={(e) => setHp(e.target.value)}
+              style={{ display: "none" }}
+              tabIndex={-1}
+              autoComplete="off"
+            />
           </form>
         )}
 
@@ -77,8 +82,6 @@ export default function EmailSignup() {
           </p>
         )}
 
-        {/* Honeypot */}
-        <input name="_hp" type="text" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
       </div>
     </section>
   );

@@ -14,7 +14,7 @@ export default function Footer() {
         <a href="https://instagram.com/colehocker" aria-label="Instagram">
           <Image src="/assets/icon-instagram.svg" alt="" width={24} height={24} />
         </a>
-        <a href="https://www.youtube.com/@team_SOVA" aria-label="YouTube">
+        <a href="https://www.youtube.com/@thecolehocker" aria-label="YouTube">
           <Image src="/assets/icon-youtube.svg" alt="" width={24} height={24} />
         </a>
         <a href="https://www.tiktok.com/@colehockerxd" aria-label="TikTok">
