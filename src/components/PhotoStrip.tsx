@@ -39,6 +39,8 @@ export default function PhotoStrip() {
             alt=""
             width={480}
             height={320}
+            sizes="(min-width: 768px) 480px, 360px"
+            quality={70}
             className="h-[240px] md:h-[320px] w-auto flex-none object-cover"
           />
         ))}

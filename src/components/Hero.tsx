@@ -2,15 +2,28 @@ import Image from "next/image";
 
 export default function Hero() {
   return (
-    <section
-      className="relative h-screen min-h-[720px] text-white bg-cover bg-[center_30%]"
-      style={{
-        backgroundImage:
-          "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.85) 100%), url(/assets/photo-3.jpg)",
-      }}
-    >
+    <section className="hero-viewport relative min-h-[560px] md:min-h-[720px] overflow-hidden bg-black text-white">
+      {/* next/image so the 5221px source is served resized; it was a raw 4.7 MB CSS background. */}
+      <Image
+        src="/assets/photo-3.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        quality={70}
+        className="object-cover object-[center_30%]"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.85) 100%)",
+        }}
+      />
+
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-[90%]">
-        <div className="font-body text-xs tracking-[0.3em] uppercase font-bold text-ch-gold mb-[18px]">
+        <div className="inline-block mb-6 md:mb-8 px-4 py-2 rounded-sm bg-black/60 backdrop-blur-sm font-body text-xs tracking-[0.3em] uppercase font-bold text-ch-gold-bright [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
           Olympic Champion &middot; 1500 m &middot; Olympic Record Holder
         </div>
         <h1

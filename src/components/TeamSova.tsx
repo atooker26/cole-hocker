@@ -1,16 +1,15 @@
+import Image from "next/image";
 import Button from "./Button";
 
 export default function TeamSova() {
   return (
     <section
       id="videos"
-      className="relative text-white px-6 py-[140px] md:px-12 bg-cover bg-center"
-      style={{
-        backgroundImage:
-          "linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.85)), url(/assets/photo-7.jpg)",
-      }}
+      className="relative text-white px-6 py-[140px] md:px-12"
     >
-      <div className="max-w-[900px] mx-auto text-center">
+      <Image src="/assets/photo-7.jpg" alt="" fill sizes="100vw" quality={70} className="object-cover object-center" />
+      <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.85))" }} />
+      <div className="relative max-w-[900px] mx-auto text-center">
         <div className="font-body text-xs tracking-[0.36em] uppercase font-bold text-ch-green mb-[22px]">
           Team Sova &middot; YouTube
         </div>
