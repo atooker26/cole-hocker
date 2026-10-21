@@ -41,3 +41,9 @@ body {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+
+/* Hero fills the visible viewport; svh keeps it from sizing to the hidden-toolbar height on phones. */
+.hero-viewport {
+  height: 100vh;
+  height: 100svh;
+}

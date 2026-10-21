@@ -1,16 +1,15 @@
+import Image from "next/image";
 import Button from "./Button";
 
 export default function Management() {
   return (
     <section
       id="management"
-      className="relative text-white px-6 py-[120px] md:px-12 md:py-[160px] min-h-[520px] bg-cover bg-center"
-      style={{
-        backgroundImage:
-          "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.85) 100%), url(/assets/photo-5.jpg)",
-      }}
+      className="relative text-white px-6 py-[120px] md:px-12 md:py-[160px] min-h-[520px]"
     >
-      <div className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-12 md:gap-20 items-center">
+      <Image src="/assets/photo-5.jpg" alt="" fill sizes="100vw" quality={70} className="object-cover object-center" />
+      <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.85) 100%)" }} />
+      <div className="relative max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-12 md:gap-20 items-center">
         <div>
           <div className="font-body text-xs tracking-[0.32em] uppercase font-bold text-ch-gold mb-[18px]">
             Booking &amp; Press
