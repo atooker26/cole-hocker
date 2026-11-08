@@ -19,13 +19,21 @@ declare global {
   }
 }
 
-export function trackFormSubmit(formId: string, label: string): void {
-  if (typeof window === "undefined") return;
-  if (window.location.pathname.startsWith("/admin")) return;
+/**
+ * Returns true only if the event was actually handed to `window.tego` — the
+ * real pixel, or the queue stub from the root layout that tego.js drains when
+ * it loads.
+ */
+export function trackFormSubmit(formId: string, label: string): boolean {
+  if (typeof window === "undefined") return false;
+  if (window.location.pathname.startsWith("/admin")) return false;
+  if (typeof window.tego !== "function") return false;
   try {
-    window.tego?.("form_submit", { formId, label });
+    window.tego("form_submit", { formId, label });
+    return true;
   } catch {
     /* analytics must never break the page */
+    return false;
   }
 }
 
@@ -33,6 +41,9 @@ export function trackFormSubmit(formId: string, label: string): void {
  * Same event, but at most once per `onceKey` in this browser tab — for a
  * confirmation page that a refresh (or Back) would otherwise re-count, like
  * /success?session_id=…. The key is stored locally only; it is never sent.
+ * It is written only AFTER the call reached `window.tego`, so a render where
+ * the pixel (and stub) were missing doesn't burn the key and the next render
+ * can still count it.
  */
 export function trackFormSubmitOnce(
   formId: string,
@@ -43,9 +54,13 @@ export function trackFormSubmitOnce(
   const key = `tego:form_submit:${formId}:${onceKey}`;
   try {
     if (window.sessionStorage.getItem(key)) return;
-    window.sessionStorage.setItem(key, "1");
   } catch {
     /* storage blocked — fall through and count it once for this render */
   }
-  trackFormSubmit(formId, label);
+  if (!trackFormSubmit(formId, label)) return;
+  try {
+    window.sessionStorage.setItem(key, "1");
+  } catch {
+    /* storage blocked — nothing to remember it in */
+  }
 }
