@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
+import { TEGO_QUEUE_STUB } from "@/lib/tego-stub";
 
 const title = "Cole Hocker — Olympic Champion, 1500 m Gold Medalist, Nike Athlete";
 const description =
@@ -41,6 +42,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="antialiased">
       <head>
+        {/* Must precede tego.js and hydration — see src/lib/tego-stub.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: TEGO_QUEUE_STUB }} />
         <script defer src="https://www.tegomarketing.com/tego.js" data-slug="cole-hocker" />
       </head>
       <body>
