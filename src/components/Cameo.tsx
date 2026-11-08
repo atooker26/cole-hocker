@@ -26,7 +26,11 @@ export default function Cameo() {
             shout-out &mdash; Cole is available on Cameo.
           </p>
           <div className="mt-8">
-            <Button variant="primary" href="https://www.cameo.com/cole_hocker">
+            <Button
+              variant="primary"
+              href="https://www.cameo.com/cole_hocker"
+              tegoCta="cameo-booking"
+            >
               Get Yours Now
             </Button>
           </div>

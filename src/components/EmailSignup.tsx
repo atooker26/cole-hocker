@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackFormSubmit } from "@/lib/tego-conversions";
 
 export default function EmailSignup() {
   const [email, setEmail] = useState("");
@@ -19,6 +20,7 @@ export default function EmailSignup() {
         body: JSON.stringify({ email: email.trim(), _hp: hp }),
       });
       if (res.ok) {
+        trackFormSubmit("newsletter", "Email signup");
         setStatus("success");
         setEmail("");
       } else {
