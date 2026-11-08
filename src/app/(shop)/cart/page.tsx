@@ -122,6 +122,7 @@ export default function CartPage() {
 
             <button
               onClick={checkout}
+              data-tego-cta="checkout"
               disabled={loading}
               className="mt-6 w-full bg-ch-gold px-[22px] py-[16px] font-body text-[13px] font-extrabold uppercase tracking-[0.16em] text-[#1A1306] hover:bg-ch-gold-bright disabled:opacity-60"
             >

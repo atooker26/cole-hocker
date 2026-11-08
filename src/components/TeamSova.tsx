@@ -23,7 +23,11 @@ export default function TeamSova() {
           YouTube and Spotify first.
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <Button variant="ghost" href="https://www.youtube.com/@thecolehocker">
+          <Button
+            variant="ghost"
+            href="https://www.youtube.com/@thecolehocker"
+            tegoCta="youtube"
+          >
             Watch on YouTube
           </Button>
           <Button variant="link" href="https://open.spotify.com/artist/73JgeGtaflWdgJUCCP3cJr?si=7MnLRhmPTUao1IIVhqaFdQ">

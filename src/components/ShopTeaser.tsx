@@ -15,6 +15,7 @@ export default function ShopTeaser() {
         </p>
         <Link
           href="/shop"
+          data-tego-cta="shop"
           className="mt-10 inline-block bg-ch-gold px-[26px] py-[15px] font-body text-[13px] font-extrabold uppercase tracking-[0.16em] text-[#1A1306] no-underline transition-colors duration-[220ms] hover:bg-ch-gold-bright"
         >
           Shop the Collection

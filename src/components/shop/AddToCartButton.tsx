@@ -30,6 +30,7 @@ export default function AddToCartButton({
 
   return (
     <button
+      data-tego-cta="add-to-cart"
       className={`${base} bg-ch-gold text-[#1A1306] hover:bg-ch-gold-bright`}
       onClick={() => {
         addItem(item);

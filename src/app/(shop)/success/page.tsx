@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ClearCart from "./ClearCart";
+import TrackOrder from "./TrackOrder";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/format";
 
@@ -33,6 +34,7 @@ export default async function SuccessPage(props: PageProps<"/success">) {
   return (
     <main className="flex min-h-[60vh] items-center justify-center px-6 py-[100px]">
       <ClearCart />
+      {order && typeof session_id === "string" && <TrackOrder sessionId={session_id} />}
       <div className="max-w-[520px] text-center">
         <div className="mb-4 font-body text-xs uppercase tracking-[0.32em] font-bold text-ch-gold">
           Order Confirmed

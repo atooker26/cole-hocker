@@ -4,10 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 
 const NAV_ITEMS = [
-  { id: "home", label: "Home", href: "#" },
-  { id: "shop", label: "Shop", href: "/shop" },
-  { id: "videos", label: "Videos", href: "#videos" },
-  { id: "agent", label: "Sport Agent", href: "#management" },
+  { id: "home", label: "Home", href: "#", tegoCta: undefined },
+  { id: "shop", label: "Shop", href: "/shop", tegoCta: "shop" },
+  { id: "videos", label: "Videos", href: "#videos", tegoCta: "videos" },
+  { id: "agent", label: "Sport Agent", href: "#management", tegoCta: "sport-agent" },
 ];
 
 export default function Header() {
@@ -40,6 +40,7 @@ export default function Header() {
           <a
             key={item.id}
             href={item.href}
+            data-tego-cta={item.tegoCta}
             className="font-body text-xs tracking-[0.22em] uppercase font-bold text-white no-underline border-b border-transparent hover:border-ch-gold pb-2 transition-[border-color] duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
             style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
           >
@@ -55,6 +56,7 @@ export default function Header() {
             <a
               key={item.id}
               href={item.href}
+              data-tego-cta={item.tegoCta}
               className="font-body text-sm tracking-[0.22em] uppercase font-bold text-white no-underline"
               onClick={() => setMenuOpen(false)}
             >

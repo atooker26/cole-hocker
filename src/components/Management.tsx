@@ -34,7 +34,11 @@ export default function Management() {
           <div className="font-narrow text-xs tracking-[0.2em] uppercase text-ch-muted mb-8">
             Flynn Sports Management
           </div>
-          <Button variant="ghost" href="https://flynnsports.com/contact/">
+          <Button
+            variant="ghost"
+            href="https://flynnsports.com/contact/"
+            tegoCta="sport-agent-contact"
+          >
             Contact Agent &rarr;
           </Button>
         </div>

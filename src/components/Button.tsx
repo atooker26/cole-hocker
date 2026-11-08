@@ -9,6 +9,8 @@ interface ButtonProps {
   variant?: Variant;
   href?: string;
   onClick?: MouseEventHandler;
+  /** TEGO pixel CTA name — tego.js sends the click itself. */
+  tegoCta?: string;
 }
 
 const base =
@@ -33,19 +35,26 @@ export default function Button({
   variant = "primary",
   href,
   onClick,
+  tegoCta,
 }: ButtonProps) {
   const className = `${base} ${variantClasses[variant]} ${hoverClasses[variant]}`;
 
   if (href) {
     return (
-      <a href={href} className={className} target="_blank" rel="noopener noreferrer">
+      <a
+        href={href}
+        className={className}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-tego-cta={tegoCta}
+      >
         {children}
       </a>
     );
   }
 
   return (
-    <button className={className} onClick={onClick}>
+    <button className={className} onClick={onClick} data-tego-cta={tegoCta}>
       {children}
     </button>
   );
