@@ -10,7 +10,9 @@
     "migrate:shopify": "tsx scripts/migrate-shopify.ts",
     "migrate:orders": "tsx scripts/migrate-orders.ts",
     "create:admin": "tsx scripts/create-admin.ts",
-    "shipstation:subscribe": "tsx scripts/shipstation-subscribe.ts"
+    "shipstation:subscribe": "tsx scripts/shipstation-subscribe.ts",
+    "backfill:tego": "tsx --env-file=.env.local scripts/backfill-tego-purchases.ts",
+    "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

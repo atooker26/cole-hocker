@@ -7,6 +7,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { computeSplit } from "@/lib/split";
 import { notifyKirk, notifyCustomer } from "@/lib/notify";
 import {
+  reportPurchaseToTego,
+  salePayload,
+  refundPayload,
+} from "@/lib/tego-purchases";
+import {
   shipstationConfigured,
   createShipstationOrder,
 } from "@/lib/shipstation";
@@ -181,7 +186,7 @@ export async function POST(request: NextRequest) {
       connect_cole_account_id: settings?.cole_connect_account_id ?? null,
       connect_transfer_status: "none",
     })
-    .select("order_number")
+    .select("order_number, created_at")
     .single();
   if (insertError) {
     console.error("order insert failed (likely duplicate delivery):", insertError.message);
@@ -295,6 +300,21 @@ export async function POST(request: NextRequest) {
   }
 
   await Promise.all([
+    // Report the sale to TEGO (revenue attribution, sales tiles, Money screen).
+    // Never throws, so it can't fail the webhook; the backfill script re-sends
+    // anything missed. Only reached on the first delivery (insert above).
+    reportPurchaseToTego(
+      salePayload(
+        {
+          id: orderId,
+          total_cents: totalCents,
+          currency,
+          created_at: inserted?.created_at ?? new Date().toISOString(),
+          email,
+        },
+        items,
+      ),
+    ),
     notifyKirk({
       dedupeKey: `new-order-kirk:${session.id}`,
       orderNumber,
@@ -320,19 +340,29 @@ async function handleRefund(
   supabase: ReturnType<typeof createAdminClient>,
   charge: Stripe.Charge,
 ) {
-  if (charge.amount_refunded < charge.amount) return; // ignore partial refunds
   const piId =
     typeof charge.payment_intent === "string"
       ? charge.payment_intent
       : charge.payment_intent?.id;
-  if (!piId) return;
+  if (!piId || !(charge.amount_refunded > 0)) return;
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, status, items:order_items(variant_id, quantity)")
+    .select("id, status, currency, created_at, items:order_items(variant_id, quantity)")
     .eq("stripe_payment_intent_id", piId)
     .maybeSingle();
-  if (!order || order.status === "refunded") return;
+  if (!order) return;
+
+  // TEGO gets every refund, partial included: a partial keeps the purchase paid
+  // at the net amount, a full one marks it refunded. Same externalId (order id)
+  // as the sale, so it updates that row. Never throws.
+  await reportPurchaseToTego(
+    refundPayload(order, charge.amount, charge.amount_refunded),
+  );
+
+  // The order itself only changes (and restocks) on a full refund.
+  if (charge.amount_refunded < charge.amount) return; // partial: no restock
+  if (order.status === "refunded") return;
 
   await supabase.from("orders").update({ status: "refunded" }).eq("id", order.id);
 
